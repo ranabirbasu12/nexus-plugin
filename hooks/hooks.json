@@ -1,0 +1,24 @@
+{
+  "hooks": [
+    {
+      "matcher": "SessionStart",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' session-start",
+          "timeout": 5000
+        }
+      ]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' post-commit",
+          "timeout": 5000
+        }
+      ]
+    }
+  ]
+}

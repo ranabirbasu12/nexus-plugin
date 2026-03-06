@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# If no .nexus/ found, suggest setup
+if [[ -z "${NEXUS_PROJECT_ROOT:-}" || ! -d "${NEXUS_PROJECT_ROOT}/.nexus" ]]; then
+  echo "Nexus: No .nexus/ found. Run /nexus-setup to enable Nexus for this project."
+  exit 0
+fi
+
+DB_FILE="${NEXUS_PROJECT_ROOT}/.nexus/nexus.db"
+GLOBAL_DB="${HOME}/.nexus/global.db"
+
+if [[ ! -f "${DB_FILE}" ]] || ! command -v sqlite3 &>/dev/null; then
+  exit 0
+fi
+
+# Calculate expiry threshold (7 days from now)
+if [[ "$(uname)" == "Darwin" ]]; then
+  EXPIRY_THRESHOLD="$(date -u -v+7d +"%Y-%m-%dT%H:%M:%SZ")"
+else
+  EXPIRY_THRESHOLD="$(date -u -d "+7 days" +"%Y-%m-%dT%H:%M:%SZ")"
+fi
+
+SHOWN_SOMETHING=false
+
+# Active Tasks (local)
+TASK_COUNT="$(sqlite3 "${DB_FILE}" "SELECT COUNT(*) FROM tasks WHERE status IN ('pending','in_progress');")"
+if [[ "${TASK_COUNT}" -gt 0 ]]; then
+  echo "=== Nexus: ${TASK_COUNT} Active Tasks ==="
+  sqlite3 "${DB_FILE}" "SELECT id || ' [' || UPPER(status) || '] (' || assignee || ') ' || title FROM tasks WHERE status IN ('pending','in_progress') ORDER BY priority DESC, created_at ASC;"
+  SHOWN_SOMETHING=true
+fi
+
+# Expiring Knowledge (local)
+KNOWLEDGE_COUNT="$(sqlite3 "${DB_FILE}" "SELECT COUNT(*) FROM knowledge WHERE expires_at IS NOT NULL AND expires_at <= '${EXPIRY_THRESHOLD}' AND expires_at > datetime('now');")"
+if [[ "${KNOWLEDGE_COUNT}" -gt 0 ]]; then
+  $SHOWN_SOMETHING && echo ""
+  echo "=== Nexus: ${KNOWLEDGE_COUNT} Knowledge Entries Expiring Soon ==="
+  sqlite3 "${DB_FILE}" "SELECT id || ' [' || type || '] ' || fact || ' (expires: ' || date(expires_at) || ')' FROM knowledge WHERE expires_at IS NOT NULL AND expires_at <= '${EXPIRY_THRESHOLD}' AND expires_at > datetime('now') ORDER BY expires_at ASC;"
+  SHOWN_SOMETHING=true
+fi
+
+# Global knowledge count
+if [[ -f "${GLOBAL_DB}" ]]; then
+  GLOBAL_COUNT="$(sqlite3 "${GLOBAL_DB}" "SELECT COUNT(*) FROM knowledge;" 2>/dev/null || echo 0)"
+  if [[ "${GLOBAL_COUNT}" -gt 0 ]]; then
+    $SHOWN_SOMETHING && echo ""
+    echo "=== Nexus: ${GLOBAL_COUNT} Global Knowledge Entries Available ==="
+    SHOWN_SOMETHING=true
+  fi
+fi
+
+if ! $SHOWN_SOMETHING; then
+  echo "Nexus: No pending tasks or expiring knowledge. Ready to work."
+fi
