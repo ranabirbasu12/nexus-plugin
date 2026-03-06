@@ -12,7 +12,7 @@ Register the plugin in `~/.claude/settings.json`:
     "nexus-marketplace": {
       "source": {
         "source": "github",
-        "repo": "ranabirbasu/nexus-plugin"
+        "repo": "ranabirbasu12/nexus-plugin"
       }
     }
   },
