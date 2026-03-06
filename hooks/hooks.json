@@ -12,9 +12,9 @@
         ]
       }
     ],
-    "Bash": [
+    "PostToolUse": [
       {
-        "matcher": "git commit",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
