@@ -2,5 +2,8 @@
   "name": "nexus",
   "version": "0.4.0",
   "description": "Multi-agent orchestration — Claude builds, Codex reviews. Per-project task board, knowledge base, and adversarial review dispatch.",
-  "author": "ranabirbasu12"
+  "author": {
+    "name": "Ranabir Basu",
+    "email": "ranabirbasu12@github.com"
+  }
 }
