@@ -1,24 +1,28 @@
 {
-  "hooks": [
-    {
-      "matcher": "SessionStart",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' session-start",
-          "timeout": 5000
-        }
-      ]
-    },
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' post-commit",
-          "timeout": 5000
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' session-start",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "Bash": [
+      {
+        "matcher": "git commit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd' post-commit",
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
 }
